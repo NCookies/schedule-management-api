@@ -1,3 +1,9 @@
 spring:
     application:
         name: schedule-management-api
+        
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3305/scheduler
+        username: root
+        password: 1234
