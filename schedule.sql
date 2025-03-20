@@ -1,3 +1,7 @@
+CREATE DATABASE IF NOT EXISTS scheduler;
+
+USE scheduler;
+
 CREATE TABLE schedule (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     task            VARCHAR(500) NOT NULL,  -- 할 일
