@@ -1,4 +1,4 @@
-package xyz.ncookie.schedulemanagementapi;
+package xyz.ncookie.sma;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
