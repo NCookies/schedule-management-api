@@ -1,15 +1,20 @@
-package xyz.ncookie.sma;
+package xyz.ncookie.sma.repository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
+import xyz.ncookie.sma.dto.request.UserRegisterRequestDto;
+import xyz.ncookie.sma.dto.response.UserInfoResponseDto;
 import xyz.ncookie.sma.entity.User;
-import xyz.ncookie.sma.repository.UserRepository;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -18,6 +23,23 @@ public class UserRepositoryImpl implements UserRepository {
 
     public UserRepositoryImpl(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    @Override
+    public User save(UserRegisterRequestDto dto) {
+        SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
+        jdbcInsert
+                .withTableName("user")
+                .usingGeneratedKeyColumns("id")
+                .usingColumns("name", "email");
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", dto.name());
+        parameters.put("email", dto.email());
+
+        Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
+
+        return findById(key.longValue());
     }
 
     @Override
