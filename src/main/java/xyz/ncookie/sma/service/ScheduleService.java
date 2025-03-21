@@ -13,7 +13,7 @@ public interface ScheduleService {
 
     ScheduleResponseDto findSchedule(Long id);
 
-    List<ScheduleResponseDto> findAllSchedules(String modifiedDate, String author);
+    List<ScheduleResponseDto> findAllSchedules(String modifiedDate, Long userId);
 
     ScheduleResponseDto updateSchedule(Long id, ScheduleUpdateRequestDto dto);
 
