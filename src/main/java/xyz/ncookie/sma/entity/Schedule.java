@@ -2,7 +2,6 @@ package xyz.ncookie.sma.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 
 import java.time.LocalDateTime;
 

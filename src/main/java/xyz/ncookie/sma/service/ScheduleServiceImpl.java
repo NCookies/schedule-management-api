@@ -9,7 +9,6 @@ import xyz.ncookie.sma.dto.request.ScheduleDeleteRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
-import xyz.ncookie.sma.entity.Schedule;
 import xyz.ncookie.sma.entity.User;
 import xyz.ncookie.sma.repository.ScheduleRepository;
 import xyz.ncookie.sma.repository.UserRepository;

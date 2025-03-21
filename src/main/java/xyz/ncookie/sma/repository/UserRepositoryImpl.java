@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
 import xyz.ncookie.sma.dto.request.UserRegisterRequestDto;
-import xyz.ncookie.sma.dto.response.UserInfoResponseDto;
 import xyz.ncookie.sma.entity.User;
 
 import javax.sql.DataSource;
