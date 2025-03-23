@@ -1,5 +1,6 @@
 package xyz.ncookie.sma.repository;
 
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -49,9 +50,10 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
 
     // 전체 조회
     @Override
-    public List<ScheduleResponseDto> findAllSchedules(String modifiedDate, Long userId) {
-        StringBuilder query = new StringBuilder(QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE 1=1");
-        List<Object> params = new ArrayList<>();
+    public Page<ScheduleResponseDto> findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
+        String rowCountQuery = "SELECT COUNT(*) FROM schedule";     // 데이터 개수 카운트하는 쿼리
+        StringBuilder query = new StringBuilder(QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE 1=1");  // 조건에 맞는 데이터 조회하는 쿼리
+        List<Object> params = new ArrayList<>();    // prepared statement 쿼리에 매개변수로 전달할 리스트
 
         if (!modifiedDate.isBlank()) {
             query.append(" AND DATE_FORMAT(s.modified_at, '%Y-%m-%d') = ?");
@@ -65,9 +67,21 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
 
         query.append(" ORDER BY s.modified_at DESC");
 
-        return jdbcTemplate.query(query.toString(), scheduleRowMapper(), params.toArray()).stream()
+        query.append(" LIMIT ?");
+        params.add(pageable.getPageSize());
+
+        query.append(" OFFSET ?");
+        params.add(pageable.getOffset());
+
+        // 쿼리 실행
+        Integer totalCount = jdbcTemplate.queryForObject(rowCountQuery, Integer.class);
+        List<ScheduleResponseDto> schedules = jdbcTemplate.query(query.toString(), scheduleRowMapper(), params.toArray()).stream()
                 .map(ScheduleResponseDto::from)
                 .toList();
+
+        // queryForObject 실행 결과가 아무것도 없으면 null 값을 반환하기 때문에, NPE가 발생할 수 있다고 IDE가 경고해서 예외처리 한다.
+        // 사실 COUNT(*)의 쿼리 결과는 항상 0 이상이기 때문에 별 의미는 없긴 함
+        return new PageImpl<>(schedules, pageable, totalCount == null ? 0 : totalCount);
     }
 
     // ID로 조회

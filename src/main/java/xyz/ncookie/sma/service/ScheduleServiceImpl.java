@@ -1,6 +1,8 @@
 package xyz.ncookie.sma.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,12 +10,11 @@ import org.springframework.web.server.ResponseStatusException;
 import xyz.ncookie.sma.dto.request.ScheduleDeleteRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
+import xyz.ncookie.sma.dto.response.SchedulePageResponseDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.entity.User;
 import xyz.ncookie.sma.repository.ScheduleRepository;
 import xyz.ncookie.sma.repository.UserRepository;
-
-import java.util.List;
 
 @Service
 @Transactional
@@ -35,8 +36,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public List<ScheduleResponseDto> findAllSchedules(String modifiedDate, Long userId) {
-        return scheduleRepository.findAllSchedules(modifiedDate, userId);
+    public SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
+        Page<ScheduleResponseDto> schedules = scheduleRepository.findAllSchedules(pageable, modifiedDate, userId);
+
+        return SchedulePageResponseDto.from(schedules);
     }
 
     @Override

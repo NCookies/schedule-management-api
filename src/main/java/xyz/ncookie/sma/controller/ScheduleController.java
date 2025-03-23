@@ -1,12 +1,16 @@
 package xyz.ncookie.sma.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.ncookie.sma.dto.request.ScheduleDeleteRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
+import xyz.ncookie.sma.dto.response.SchedulePageResponseDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.service.ScheduleService;
 
@@ -25,11 +29,12 @@ public class ScheduleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ScheduleResponseDto>> findAllSchedules(
+    public ResponseEntity<SchedulePageResponseDto> findAllSchedules(
+            @PageableDefault(size = 10, sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(required = false, defaultValue = "") String modified_date,
             @RequestParam(required = false, defaultValue = "-1") Long userId
     ) {
-        return new ResponseEntity<>(scheduleService.findAllSchedules(modified_date, userId), HttpStatus.OK);
+        return new ResponseEntity<>(scheduleService.findAllSchedules(pageable, modified_date, userId), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

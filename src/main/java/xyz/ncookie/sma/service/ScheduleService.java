@@ -1,8 +1,10 @@
 package xyz.ncookie.sma.service;
 
+import org.springframework.data.domain.Pageable;
 import xyz.ncookie.sma.dto.request.ScheduleDeleteRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
+import xyz.ncookie.sma.dto.response.SchedulePageResponseDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 
 import java.util.List;
@@ -13,7 +15,7 @@ public interface ScheduleService {
 
     ScheduleResponseDto findSchedule(Long id);
 
-    List<ScheduleResponseDto> findAllSchedules(String modifiedDate, Long userId);
+    SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId);
 
     ScheduleResponseDto updateSchedule(Long id, ScheduleUpdateRequestDto dto);
 

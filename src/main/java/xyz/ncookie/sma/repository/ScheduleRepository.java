@@ -1,5 +1,7 @@
 package xyz.ncookie.sma.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 
@@ -9,7 +11,7 @@ public interface ScheduleRepository {
 
     ScheduleResponseDto saveSchedule(ScheduleRequestDto dto);
 
-    List<ScheduleResponseDto> findAllSchedules(String modifiedDate, Long userId);
+    Page<ScheduleResponseDto> findAllSchedules(Pageable pageable, String modifiedDate, Long userId);
 
     ScheduleResponseDto findScheduleByIdOrElseThrow(Long id);
 
