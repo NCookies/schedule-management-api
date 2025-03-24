@@ -68,7 +68,10 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }
 
-        scheduleRepository.updateSchedule(scheduleId, dto.task());
+        int updatedSchedule = scheduleRepository.updateSchedule(scheduleId, dto.userId(), dto.task());
+        if (updatedSchedule == 0) { // 일정 ID와 유저 ID 모두 일치하는 일정 데이터가 없음
+            throw new NotFoundException();
+        }
 
         return findSchedule(scheduleId);
     }

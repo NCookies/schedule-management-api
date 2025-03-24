@@ -96,11 +96,12 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public int updateSchedule(Long scheduleId, String task) {
+    public int updateSchedule(Long scheduleId, Long userId, String task) {
         return jdbcTemplate.update(
-                "UPDATE schedule SET task = ?, modified_at = NOW() WHERE id = ?",
+                "UPDATE schedule SET task = ?, modified_at = NOW() WHERE id = ? AND user_id = ?",
                 task,
-                scheduleId
+                scheduleId,
+                userId
         );
     }
 
