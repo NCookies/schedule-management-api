@@ -37,6 +37,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional(readOnly = true)
     @Override
     public SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
+        // userId를 전달받았지만 유효하지 않은 유저 ID인 경우
+        if (userId != -1 && userRepository.findById(userId).isEmpty()) {
+            throw new NoSuchIdException("존재하지 않는 회원의 ID 입니다.");
+        }
+
         Page<ScheduleResponseDto> schedules = scheduleRepository.findAll(pageable, modifiedDate, userId);
 
         return SchedulePageResponseDto.from(schedules);
