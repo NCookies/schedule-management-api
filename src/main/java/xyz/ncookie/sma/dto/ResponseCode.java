@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 public enum ResponseCode {
 
     // 40x Error
+    BAD_REQUEST("잘못된 파라미터입니다.", HttpStatus.BAD_REQUEST),
+
     NOT_FOUND("유효하지 않은 ID 입니다.", HttpStatus.NOT_FOUND),
     NOT_FOUND_USER_ID("존재하지 않는 회원의 ID 입니다.", HttpStatus.NOT_FOUND),
     NOT_FOUND_SCHEDULE_ID("존재하지 않는 일정 ID 입니다.", HttpStatus.NOT_FOUND),

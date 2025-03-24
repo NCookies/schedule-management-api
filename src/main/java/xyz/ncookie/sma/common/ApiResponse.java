@@ -2,6 +2,7 @@ package xyz.ncookie.sma.common;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import xyz.ncookie.sma.dto.ResponseCode;
 
 // 공용 응답 클래스
 @Getter
@@ -34,6 +35,10 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(HttpStatus status, String message, T data) {
         return new ApiResponse<>(status, message, data);
+    }
+
+    public static <T> ApiResponse<T> error(ResponseCode responseCode, T data) {
+        return new ApiResponse<>(responseCode.getHttpStatus(), responseCode.getMessage(), data);
     }
 
 }

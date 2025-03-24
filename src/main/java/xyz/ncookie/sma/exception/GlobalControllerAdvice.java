@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import xyz.ncookie.sma.common.ApiResponse;
+import xyz.ncookie.sma.dto.ResponseCode;
 
 @Slf4j
 @RestControllerAdvice
@@ -20,8 +22,7 @@ public class GlobalControllerAdvice {
         log.error("핸들링되지 않은 예외 발생!!! : [{}]{}", e.getClass().getSimpleName(), e.getMessage(), e);
 
         ApiResponse<String> body = ApiResponse.error(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "서버 내부 오류가 발생했습니다.",
+                ResponseCode.INTERNAL_SERVER_ERROR,
                 e.getMessage()
         );
 
@@ -59,6 +60,25 @@ public class GlobalControllerAdvice {
 
         return ResponseEntity
                 .status(e.getHttpStatus())
+                .body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<String>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        String paramName = e.getName();
+        String invalidValue = String.valueOf(e.getValue());
+
+        String message = String.format("요청 파라미터 '%s'의 값 '%s'은(는) 올바른 형식이 아닙니다.", paramName, invalidValue);
+
+        log.error("[{}] 유효하지 않은 파라미터: {}", e.getClass().getSimpleName(), message);
+
+        ApiResponse<String> body = ApiResponse.error(
+                ResponseCode.BAD_REQUEST,
+                message
+        );
+
+        return ResponseEntity
+                .status(ResponseCode.BAD_REQUEST.getHttpStatus())
                 .body(body);
     }
 
