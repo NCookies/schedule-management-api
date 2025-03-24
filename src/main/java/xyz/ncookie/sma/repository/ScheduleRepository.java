@@ -5,18 +5,20 @@ import org.springframework.data.domain.Pageable;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface ScheduleRepository {
 
-    ScheduleResponseDto saveSchedule(ScheduleRequestDto dto);
+    Optional<ScheduleResponseDto> saveSchedule(ScheduleRequestDto dto);
 
-    Page<ScheduleResponseDto> findAllSchedules(Pageable pageable, String modifiedDate, Long userId);
+    Page<ScheduleResponseDto> findAll(Pageable pageable, String modifiedDate, Long userId);
 
-    ScheduleResponseDto findScheduleByIdOrElseThrow(Long id);
+    Optional<ScheduleResponseDto> findById(Long id);
 
     int updateSchedule(Long id, String task, String password);
 
-    int deleteSchedule(Long id, String password);
+    void deleteSchedule(Long id, String password);
+
+    boolean validPassword(Long scheduleId, String password);
 
 }

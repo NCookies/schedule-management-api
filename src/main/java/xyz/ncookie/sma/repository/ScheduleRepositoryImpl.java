@@ -1,13 +1,11 @@
 package xyz.ncookie.sma.repository;
 
 import org.springframework.data.domain.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.server.ResponseStatusException;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.entity.Schedule;
@@ -29,7 +27,7 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
+    public Optional<ScheduleResponseDto> saveSchedule(ScheduleRequestDto dto) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("schedule")
@@ -45,12 +43,12 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
 
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        return findScheduleByIdOrElseThrow(key.longValue());
+        return findById(key.longValue());
     }
 
     // 전체 조회
     @Override
-    public Page<ScheduleResponseDto> findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
+    public Page<ScheduleResponseDto> findAll(Pageable pageable, String modifiedDate, Long userId) {
         String rowCountQuery = "SELECT COUNT(*) FROM schedule";     // 데이터 개수 카운트하는 쿼리
         StringBuilder query = new StringBuilder(QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE 1=1");  // 조건에 맞는 데이터 조회하는 쿼리
         List<Object> params = new ArrayList<>();    // prepared statement 쿼리에 매개변수로 전달할 리스트
@@ -86,16 +84,16 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
 
     // ID로 조회
     @Override
-    public ScheduleResponseDto findScheduleByIdOrElseThrow(Long scheduleId) {
+    public Optional<ScheduleResponseDto> findById(Long scheduleId) {
         List<Schedule> result = jdbcTemplate.query(
                 QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE s.id = ?",
                 scheduleRowMapper(),
                 scheduleId
         );
+
         return result.stream()
                 .findAny()
-                .map(ScheduleResponseDto::from)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유효하지 않은 ID입니다: " + scheduleId));
+                .map(ScheduleResponseDto::from);
     }
 
     @Override
@@ -109,8 +107,22 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public int deleteSchedule(Long id, String password) {
-        return jdbcTemplate.update("DELETE FROM schedule WHERE id = ? AND password = ?", id, password);
+    public void deleteSchedule(Long id, String password) {
+        jdbcTemplate.update("DELETE FROM schedule WHERE id = ? AND password = ?", id, password);
+    }
+
+    // 수정 또는 삭제하려는 일정의 비밀번호 검증
+    @Override
+    public boolean validPassword(Long scheduleId, String password) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM schedule WHERE id = ? AND password = ?",
+                Integer.class,
+                scheduleId,
+                password
+        );
+
+        // 비밀번호가 일치한다면 true 반환
+        return count == 1;
     }
 
     // SQL 결과 -> 자바 객체 매핑을 수행하는 메소드
