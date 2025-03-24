@@ -3,6 +3,7 @@ package xyz.ncookie.sma.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.ncookie.sma.dto.ResponseCode;
@@ -24,9 +25,13 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
-        Long savedScheduleId = scheduleRepository.saveSchedule(dto);
+        String encodedPassword = passwordEncoder.encode(dto.password());
+        Long savedScheduleId = scheduleRepository.saveSchedule(dto.userId(), dto.task(), encodedPassword);
+
         return scheduleRepository
                 .findById(savedScheduleId)
                 .orElseThrow(() -> new NotFoundException(ResponseCode.ERROR_WHILE_SAVE));
@@ -55,27 +60,39 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleResponseDto updateSchedule(Long scheduleId, ScheduleUpdateRequestDto dto) {
-        if (!scheduleRepository.validPassword(scheduleId, dto.password())) {
-            throw new InvalidPasswordException();
-        }
+        validScheduleIdAndPassword(scheduleId, dto.password());
 
+        // 유저 ID가 유효하지 않으면 예외 발생
         int updatedUser = userRepository.updateUserName(dto.userId(), dto.author());
         if (updatedUser == 0) {
             throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }
 
-        scheduleRepository.updateSchedule(scheduleId, dto.task(), dto.password());
+        scheduleRepository.updateSchedule(scheduleId, dto.task());
 
         return findSchedule(scheduleId);
     }
 
     @Override
     public void deleteSchedule(Long scheduleId, ScheduleDeleteRequestDto dto) {
-        if (!scheduleRepository.validPassword(scheduleId, dto.password())) {
+        validScheduleIdAndPassword(scheduleId, dto.password());
+
+        scheduleRepository.deleteSchedule(scheduleId);
+    }
+
+    /**
+     * 일정 ID 검증 + 입력받은 비밀번호와 DB에 저장되어 있는 비밀번호가 일치하는지 확인하는 메서드
+     * @param scheduleId 일정 ID
+     * @param rawPassword 클라이언트로부터 전달받은 비밀번호 (RAW)
+     */
+    private void validScheduleIdAndPassword(Long scheduleId, String rawPassword) {
+        // 해당 ID의 일정이 존재하지 않으면 예외 발생
+        findSchedule(scheduleId);
+        
+        String storedPassword = scheduleRepository.getPassword(scheduleId, rawPassword);
+        if (!passwordEncoder.matches(rawPassword, storedPassword)) {
             throw new InvalidPasswordException();
         }
-
-        scheduleRepository.deleteSchedule(scheduleId, dto.password());
     }
 
 }

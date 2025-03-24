@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.entity.Schedule;
 import xyz.ncookie.sma.entity.User;
@@ -27,19 +26,19 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public Long saveSchedule(ScheduleRequestDto dto) {
+    public Long saveSchedule(Long userId, String task, String password) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("schedule")
                 .usingGeneratedKeyColumns("id")
                 // 직접 값을 입력할 필드를 명시한다.
                 // 이 외의 필드들은 테이블에 설정된 default value 또는 null 값이 할당된다.
-                .usingColumns("task", "user_id", "password");
+                .usingColumns("user_id", "task", "password");
 
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("task", dto.task());
-        parameters.put("user_id", dto.userId());
-        parameters.put("password", dto.password());     // TODO: 비밀번호 암호화 해야함
+        parameters.put("user_id", userId);
+        parameters.put("task", task);
+        parameters.put("password", password);
 
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
@@ -97,32 +96,27 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public int updateSchedule(Long scheduleId, String task, String password) {
+    public int updateSchedule(Long scheduleId, String task) {
         return jdbcTemplate.update(
-                "UPDATE schedule SET task = ?, modified_at = NOW() WHERE id = ? AND password = ?",
+                "UPDATE schedule SET task = ?, modified_at = NOW() WHERE id = ?",
                 task,
-                scheduleId,
-                password
+                scheduleId
         );
     }
 
     @Override
-    public void deleteSchedule(Long id, String password) {
-        jdbcTemplate.update("DELETE FROM schedule WHERE id = ? AND password = ?", id, password);
+    public void deleteSchedule(Long id) {
+        jdbcTemplate.update("DELETE FROM schedule WHERE id = ?", id);
     }
 
     // 수정 또는 삭제하려는 일정의 비밀번호 검증
     @Override
-    public boolean validPassword(Long scheduleId, String password) {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM schedule WHERE id = ? AND password = ?",
-                Integer.class,
-                scheduleId,
-                password
+    public String getPassword(Long scheduleId, String password) {
+        return jdbcTemplate.queryForObject(
+                "SELECT password FROM schedule WHERE id = ?",
+                String.class,
+                scheduleId
         );
-
-        // 비밀번호가 일치한다면 true 반환
-        return count == 1;
     }
 
     // SQL 결과 -> 자바 객체 매핑을 수행하는 메소드
