@@ -25,7 +25,10 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
-        return scheduleRepository.saveSchedule(dto).orElseThrow(() -> new NoSuchIdException("데이터 저장 중 문제가 발생했습니다."));
+        Long savedScheduleId = scheduleRepository.saveSchedule(dto);
+        return scheduleRepository
+                .findById(savedScheduleId)
+                .orElseThrow(() -> new NoSuchIdException("데이터 저장 중 문제가 발생했습니다."));
     }
 
     @Transactional(readOnly = true)

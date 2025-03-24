@@ -1,12 +1,10 @@
 package xyz.ncookie.sma.repository;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.server.ResponseStatusException;
 import xyz.ncookie.sma.dto.request.UserRegisterRequestDto;
 import xyz.ncookie.sma.entity.User;
 
@@ -14,6 +12,7 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -25,7 +24,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User save(UserRegisterRequestDto dto) {
+    public Long save(UserRegisterRequestDto dto) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("user")
@@ -38,15 +37,13 @@ public class UserRepositoryImpl implements UserRepository {
 
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        return findById(key.longValue());
+        return key.longValue();
     }
 
     @Override
-    public User findById(Long id) {
+    public Optional<User> findById(Long id) {
         List<User> result = jdbcTemplate.query("SELECT * FROM user WHERE id = ?", userRowMapper(), id);
-        return result.stream()
-                .findAny()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유효하지 않은 ID입니다: " + id));
+        return result.stream().findAny();
     }
 
     @Override

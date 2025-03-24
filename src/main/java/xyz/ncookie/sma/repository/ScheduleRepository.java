@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface ScheduleRepository {
 
-    Optional<ScheduleResponseDto> saveSchedule(ScheduleRequestDto dto);
+    Long saveSchedule(ScheduleRequestDto dto);
 
     Page<ScheduleResponseDto> findAll(Pageable pageable, String modifiedDate, Long userId);
 

@@ -27,7 +27,7 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
     }
 
     @Override
-    public Optional<ScheduleResponseDto> saveSchedule(ScheduleRequestDto dto) {
+    public Long saveSchedule(ScheduleRequestDto dto) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("schedule")
@@ -43,7 +43,7 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
 
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        return findById(key.longValue());
+        return key.longValue();
     }
 
     // 전체 조회
