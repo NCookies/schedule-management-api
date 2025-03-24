@@ -2,6 +2,7 @@ package xyz.ncookie.sma.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import xyz.ncookie.sma.dto.ResponseCode;
 
 /**
  * 비즈니스 로직에서 발생할 수 있는 예외들의 부모 클래스
@@ -15,6 +16,11 @@ public class BusinessException extends RuntimeException {
     public BusinessException(String message, HttpStatus httpStatus) {
         super(message);
         this.httpStatus = httpStatus;
+    }
+
+    public BusinessException(ResponseCode responseCode) {
+        super(responseCode.getMessage());
+        this.httpStatus = responseCode.getHttpStatus();
     }
 
 }

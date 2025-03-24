@@ -5,13 +5,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.ncookie.sma.dto.ResponseCode;
 import xyz.ncookie.sma.dto.request.ScheduleDeleteRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
 import xyz.ncookie.sma.dto.response.SchedulePageResponseDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.exception.InvalidPasswordException;
-import xyz.ncookie.sma.exception.NoSuchIdException;
+import xyz.ncookie.sma.exception.NotFoundException;
 import xyz.ncookie.sma.repository.ScheduleRepository;
 import xyz.ncookie.sma.repository.UserRepository;
 
@@ -28,13 +29,15 @@ public class ScheduleServiceImpl implements ScheduleService {
         Long savedScheduleId = scheduleRepository.saveSchedule(dto);
         return scheduleRepository
                 .findById(savedScheduleId)
-                .orElseThrow(() -> new NoSuchIdException("데이터 저장 중 문제가 발생했습니다."));
+                .orElseThrow(() -> new NotFoundException(ResponseCode.ERROR_WHILE_SAVE));
     }
 
     @Transactional(readOnly = true)
     @Override
     public ScheduleResponseDto findSchedule(Long id) {
-        return scheduleRepository.findById(id).orElseThrow(NoSuchIdException::new);
+        return scheduleRepository
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException(ResponseCode.NOT_FOUND_SCHEDULE_ID));
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +45,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
         // userId를 전달받았지만 유효하지 않은 유저 ID인 경우
         if (userId != -1 && userRepository.findById(userId).isEmpty()) {
-            throw new NoSuchIdException("존재하지 않는 회원의 ID 입니다.");
+            throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }
 
         Page<ScheduleResponseDto> schedules = scheduleRepository.findAll(pageable, modifiedDate, userId);
@@ -58,7 +61,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         int updatedUser = userRepository.updateUserName(dto.userId(), dto.author());
         if (updatedUser == 0) {
-            throw new NoSuchIdException("존재하지 않는 회원의 ID 입니다.");
+            throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }
 
         scheduleRepository.updateSchedule(scheduleId, dto.task(), dto.password());

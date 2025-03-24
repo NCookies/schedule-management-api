@@ -1,11 +1,16 @@
 package xyz.ncookie.sma.exception;
 
 import org.springframework.http.HttpStatus;
+import xyz.ncookie.sma.dto.ResponseCode;
 
 public class InvalidPasswordException extends BusinessException {
 
     public InvalidPasswordException() {
-        super("비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED);
+        super(ResponseCode.INVALID_PASSWORD);
+    }
+
+    public InvalidPasswordException(ResponseCode responseCode) {
+        super(responseCode);
     }
 
     public InvalidPasswordException(String message) {

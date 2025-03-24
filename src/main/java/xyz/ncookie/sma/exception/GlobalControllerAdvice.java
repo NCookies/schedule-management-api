@@ -52,7 +52,7 @@ public class GlobalControllerAdvice {
                 .body(body);
     }
 
-    @ExceptionHandler({ NoSuchIdException.class, InvalidPasswordException.class })
+    @ExceptionHandler({ NotFoundException.class, InvalidPasswordException.class })
     public ResponseEntity<ApiResponse<Void>> handleNoSuchIdException(BusinessException e) {
         log.warn("[{}] 예외 발생: {}", e.getClass().getSimpleName(), e.getMessage());
         ApiResponse<Void> body = ApiResponse.error(e.getHttpStatus(), e.getMessage(), null);
