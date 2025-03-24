@@ -1,5 +1,6 @@
 package xyz.ncookie.sma.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ApiResponse<Object> register(@RequestBody UserRegisterRequestDto dto) {
+    public ApiResponse<Object> register(@RequestBody @Valid UserRegisterRequestDto dto) {
         UserInfoResponseDto userInfoResponseDto = userService.registerUser(dto);
         return ApiResponse.success(HttpStatus.CREATED, userInfoResponseDto);
     }
