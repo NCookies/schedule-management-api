@@ -2,6 +2,7 @@ package xyz.ncookie.sma.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +10,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class User {
 
+    @Id
     private Long id;
+
     private String name;
     private String email;
     private LocalDateTime createdAt;
