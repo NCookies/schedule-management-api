@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+// 자주 사용되는 응답 코드 및 메세지를 모아둔 Enum
 @Getter
 @AllArgsConstructor
 public enum ResponseCode {

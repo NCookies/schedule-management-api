@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+// Page 객체로 구성된 일정 전체 조회 응답 DTO
 public record SchedulePageResponseDto(
         List<ScheduleResponseDto> contents,     // 조회 데이터
 

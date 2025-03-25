@@ -5,6 +5,10 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * 검색 조건으로 날짜 데이터가 들어왔을 때 형식이 올바른지 검사하는 어노테이션
+ * 지정한 Validator 에서 날짜 데이터가 유효한지 판단한다.
+ */
 @Documented
 @Constraint(validatedBy = DateStringValidator.class)
 @Target(ElementType.PARAMETER)

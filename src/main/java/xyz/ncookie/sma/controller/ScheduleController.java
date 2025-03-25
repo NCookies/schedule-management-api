@@ -17,7 +17,7 @@ import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
 import xyz.ncookie.sma.service.ScheduleService;
 import xyz.ncookie.sma.valid.DateString;
 
-@Validated  // @RequestParam, @PathVariable 등에도 @Valid 적용하기 위해서 사용
+@Validated  // @RequestParam, @PathVariable 등에도 valid 적용하기 위해서 사용
 @RestController
 @RequestMapping("/api/schedules")
 @RequiredArgsConstructor

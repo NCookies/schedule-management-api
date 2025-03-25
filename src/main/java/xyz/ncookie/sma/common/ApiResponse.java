@@ -4,7 +4,10 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import xyz.ncookie.sma.dto.ResponseCode;
 
-// 공용 응답 클래스
+/**
+ * 공용 응답 클래스
+ * @param <T>   어떤 타입의 데이터가 들어와도 사용 가능
+ */
 @Getter
 public class ApiResponse<T> {
 

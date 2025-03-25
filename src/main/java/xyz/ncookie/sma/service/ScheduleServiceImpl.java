@@ -29,6 +29,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
+        // 비밀번호 암호화 해서 저장
         String encodedPassword = passwordEncoder.encode(dto.password());
         Long savedScheduleId = scheduleRepository.saveSchedule(dto.userId(), dto.task(), encodedPassword);
 
@@ -48,7 +49,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Transactional(readOnly = true)
     @Override
     public SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
-        // userId를 전달받았지만 유효하지 않은 유저 ID인 경우
+        // userId(required=false)를 전달받았지만 유효하지 않은 유저 ID인 경우
         if (userId != -1 && userRepository.findById(userId).isEmpty()) {
             throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }

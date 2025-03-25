@@ -4,6 +4,7 @@ import xyz.ncookie.sma.entity.Schedule;
 
 import java.time.LocalDateTime;
 
+// 단일 일정 조회 응답 DTO
 public record ScheduleResponseDto(
         Long id,
         UserInfoResponseDto userInfo,
