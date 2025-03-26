@@ -13,7 +13,7 @@ public class DateStringValidator implements ConstraintValidator<DateString, Stri
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
         // modified_date 데이터는 required = false 속성의 파라미터이기 때문에 공백 문자열이 들어오면 통과시킨다.
-        if (s.isBlank()) {
+        if (s == null || s.isBlank()) {
             return true;
         }
 

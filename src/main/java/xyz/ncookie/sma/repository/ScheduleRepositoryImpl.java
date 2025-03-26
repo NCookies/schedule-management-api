@@ -11,6 +11,8 @@ import xyz.ncookie.sma.entity.Schedule;
 import xyz.ncookie.sma.entity.User;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Repository
@@ -25,39 +27,75 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
+    /**
+     * 일정 저장
+     * @param schedule entity 객체
+     * @return 전달받은 entity 객체에 추가적인 값 입력 후 반환
+     */
     @Override
-    public Long saveSchedule(Long userId, String task, String password) {
+    public Schedule saveSchedule(Schedule schedule) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("schedule")
-                .usingGeneratedKeyColumns("id")
-                // 직접 값을 입력할 필드를 명시한다.
-                // 이 외의 필드들은 테이블에 설정된 default value 또는 null 값이 할당된다.
-                .usingColumns("user_id", "task", "password");
+                .usingGeneratedKeyColumns("id");
 
+        // 현재 시각
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        // DB에 삽입할 파라미터 설정
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("user_id", userId);
-        parameters.put("task", task);
-        parameters.put("password", password);
+        parameters.put("user_id", schedule.getUser().getId());
+        parameters.put("task", schedule.getTask());
+        parameters.put("password", schedule.getPassword());
+        parameters.put("created_at", now);
+        parameters.put("modified_at", now);
 
+        // DB 저장 및 ID 조회
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        return key.longValue();
+        // entity 값 설정
+        schedule.setId(key.longValue());
+        schedule.setCreatedAt(now.toLocalDateTime());
+        schedule.setModifiedAt(now.toLocalDateTime());
+
+        return schedule;
     }
 
-    // 전체 조회
+    /**
+     * 일정 단일 조회
+     * @param scheduleId 일정 ID
+     * @return Optional<Schedule>
+     */
+    @Override
+    public Optional<Schedule> findById(Long scheduleId) {
+        List<Schedule> result = jdbcTemplate.query(
+                QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE s.id = ?",
+                scheduleRowMapper(),
+                scheduleId
+        );
+
+        return result.stream().findAny();
+    }
+
+    /**
+     * 일정 
+     * @param pageable size, page 등의 정보를 담고 있음
+     * @param modifiedDate 수정일로 검색
+     * @param userId 유저 id 기준으로 검색
+     * @return 지정된 조건에 해당하는 데이터들을 Page 객체에 담아 반환 (수정일 기준 내림차순 정렬)
+     */
     @Override
     public Page<ScheduleResponseDto> findAll(Pageable pageable, String modifiedDate, Long userId) {
         String rowCountQuery = "SELECT COUNT(*) FROM schedule";     // 데이터 개수 카운트하는 쿼리
         StringBuilder query = new StringBuilder(QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE 1=1");  // 조건에 맞는 데이터 조회하는 쿼리
         List<Object> params = new ArrayList<>();    // prepared statement 쿼리에 매개변수로 전달할 리스트
 
-        if (!modifiedDate.isBlank()) {
+        if (modifiedDate != null && !modifiedDate.isBlank()) {
             query.append(" AND DATE_FORMAT(s.modified_at, '%Y-%m-%d') = ?");
             params.add(modifiedDate);
         }
 
-        if (userId != -1) {
+        if (userId != null) {
             query.append(" AND user_id = ?");
             params.add(userId);
         }
@@ -81,28 +119,18 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
         return new PageImpl<>(schedules, pageable, totalCount == null ? 0 : totalCount);
     }
 
-    // ID로 조회
     @Override
-    public Optional<ScheduleResponseDto> findById(Long scheduleId) {
-        List<Schedule> result = jdbcTemplate.query(
-                QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE s.id = ?",
-                scheduleRowMapper(),
-                scheduleId
-        );
-
-        return result.stream()
-                .findAny()
-                .map(ScheduleResponseDto::from);
-    }
-
-    @Override
-    public int updateSchedule(Long scheduleId, Long userId, String task) {
-        return jdbcTemplate.update(
+    public Optional<Schedule> updateSchedule(Long scheduleId, Long userId, String task) {
+        int updatedRow = jdbcTemplate.update(
                 "UPDATE schedule SET task = ?, modified_at = NOW() WHERE id = ? AND user_id = ?",
                 task,
                 scheduleId,
                 userId
         );
+
+        return updatedRow == 0
+                ? Optional.empty()
+                : findById(scheduleId);
     }
 
     @Override

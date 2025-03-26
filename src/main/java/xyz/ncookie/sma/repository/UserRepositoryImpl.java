@@ -5,10 +5,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import xyz.ncookie.sma.dto.request.UserRegisterRequestDto;
 import xyz.ncookie.sma.entity.User;
 
 import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,20 +25,30 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Long save(UserRegisterRequestDto dto) {
+    public User save(User user) {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
         jdbcInsert
                 .withTableName("user")
-                .usingGeneratedKeyColumns("id")
-                .usingColumns("name", "email");
+                .usingGeneratedKeyColumns("id");
 
+        // 현재 시각
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+
+        // DB 저장 및 ID 조회
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("name", dto.name());
-        parameters.put("email", dto.email());
+        parameters.put("name", user.getName());
+        parameters.put("email", user.getEmail());
+        parameters.put("created_at", now);
+        parameters.put("modified_at", now);
 
         Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-        return key.longValue();
+        // entity 값 설정
+        user.setId(key.longValue());
+        user.setCreatedAt(now.toLocalDateTime());
+        user.setModifiedAt(now.toLocalDateTime());
+
+        return user;
     }
 
     @Override
@@ -47,12 +58,16 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public int updateUserName(Long userId, String author) {
-        return jdbcTemplate.update(
+    public Optional<User> updateUserName(User user) {
+        int updatedRow = jdbcTemplate.update(
                 "UPDATE user SET name = ?, modified_at = NOW() WHERE id = ?",
-                author,
-                userId
+                user.getName(),
+                user.getId()
         );
+
+        return updatedRow == 0
+                ? Optional.empty()
+                : findById(user.getId());
     }
 
     private RowMapper<User> userRowMapper() {
