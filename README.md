@@ -48,6 +48,10 @@ docker-compose down -v
 
 [포스트맨 Document](https://documenter.getpostman.com/view/27399553/2sAYkKHHF5)
 
+![image](https://github.com/user-attachments/assets/d21b7012-7c3e-47d9-ad5e-362120ae7158)
+
+포스트맨을 활용해 API 명세서를 작성했다. 요청 데이터에 따른 여러 응답을 확인해볼 수 있다.
+
 ### ERD
 
 ![](./document/db-erd.png)
