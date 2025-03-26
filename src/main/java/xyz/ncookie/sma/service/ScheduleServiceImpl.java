@@ -12,30 +12,40 @@ import xyz.ncookie.sma.dto.request.ScheduleRequestDto;
 import xyz.ncookie.sma.dto.request.ScheduleUpdateRequestDto;
 import xyz.ncookie.sma.dto.response.SchedulePageResponseDto;
 import xyz.ncookie.sma.dto.response.ScheduleResponseDto;
+import xyz.ncookie.sma.entity.Schedule;
+import xyz.ncookie.sma.entity.User;
 import xyz.ncookie.sma.exception.InvalidPasswordException;
 import xyz.ncookie.sma.exception.NotFoundException;
 import xyz.ncookie.sma.repository.ScheduleRepository;
 import xyz.ncookie.sma.repository.UserRepository;
 
+
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class ScheduleServiceImpl implements ScheduleService {
+
+    private final UserRetrievalService userRetrievalService;
 
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
 
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     @Override
     public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) {
+        // 유저 entity 조회
+        User user = userRetrievalService.findUser(dto.userId());
+
         // 비밀번호 암호화 해서 저장
         String encodedPassword = passwordEncoder.encode(dto.password());
-        Long savedScheduleId = scheduleRepository.saveSchedule(dto.userId(), dto.task(), encodedPassword);
 
-        return scheduleRepository
-                .findById(savedScheduleId)
-                .orElseThrow(() -> new NotFoundException(ResponseCode.ERROR_WHILE_SAVE));
+        // DB에 entity 저장
+        Schedule savedSchedule = scheduleRepository.saveSchedule(
+                Schedule.of(user, encodedPassword, dto.task())
+        );
+
+        return ScheduleResponseDto.from(savedSchedule);
     }
 
     @Transactional(readOnly = true)
@@ -43,6 +53,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     public ScheduleResponseDto findSchedule(Long id) {
         return scheduleRepository
                 .findById(id)
+                .map(ScheduleResponseDto::from)
                 .orElseThrow(() -> new NotFoundException(ResponseCode.NOT_FOUND_SCHEDULE_ID));
     }
 
@@ -59,24 +70,26 @@ public class ScheduleServiceImpl implements ScheduleService {
         return SchedulePageResponseDto.from(schedules);
     }
 
+    @Transactional
     @Override
     public ScheduleResponseDto updateSchedule(Long scheduleId, ScheduleUpdateRequestDto dto) {
         validScheduleIdAndPassword(scheduleId, dto.password());
 
-        // 유저 ID가 유효하지 않으면 예외 발생
-        int updatedUser = userRepository.updateUserName(dto.userId(), dto.author());
-        if (updatedUser == 0) {
-            throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
-        }
+        // 유저 정보 업데이트
+        User user = userRetrievalService.findUser(dto.userId());
+        user.setName(dto.author());
 
-        int updatedSchedule = scheduleRepository.updateSchedule(scheduleId, dto.userId(), dto.task());
-        if (updatedSchedule == 0) { // 일정 ID와 유저 ID 모두 일치하는 일정 데이터가 없음
-            throw new NotFoundException();
-        }
+        userRepository.updateUserName(user)
+                .orElseThrow(() -> new NotFoundException(ResponseCode.NOT_FOUND_USER_ID));
 
-        return findSchedule(scheduleId);
+        // 일정 정보 업데이트 및 Response DOT 반환
+        return scheduleRepository
+                .updateSchedule(scheduleId, dto.userId(), dto.task())
+                .map(ScheduleResponseDto::from)
+                .orElseThrow(NotFoundException::new);   // 일정 ID와 유저 ID 모두 일치하는 일정 데이터가 없음
     }
 
+    @Transactional
     @Override
     public void deleteSchedule(Long scheduleId, ScheduleDeleteRequestDto dto) {
         validScheduleIdAndPassword(scheduleId, dto.password());
@@ -91,8 +104,8 @@ public class ScheduleServiceImpl implements ScheduleService {
      */
     private void validScheduleIdAndPassword(Long scheduleId, String rawPassword) {
         // 해당 ID의 일정이 존재하지 않으면 예외 발생
-        findSchedule(scheduleId);
-        
+        ScheduleResponseDto schedule = findSchedule(scheduleId);
+
         String storedPassword = scheduleRepository.getPassword(scheduleId, rawPassword);
         if (!passwordEncoder.matches(rawPassword, storedPassword)) {
             throw new InvalidPasswordException();

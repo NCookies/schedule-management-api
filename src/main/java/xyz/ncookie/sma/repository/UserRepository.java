@@ -7,10 +7,10 @@ import java.util.Optional;
 
 public interface UserRepository {
 
-    Long save(UserRegisterRequestDto dto);
+    User save(User user);
 
     Optional<User> findById(Long id);
 
-    int updateUserName(Long userId, String author);
+    Optional<User> updateUserName(User user);
 
 }
