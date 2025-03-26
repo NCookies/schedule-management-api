@@ -2,6 +2,7 @@ package xyz.ncookie.sma.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,6 +22,7 @@ public class GlobalControllerAdvice {
         // 에러 메세지 + 스택 트레이스
         log.error("핸들링되지 않은 예외 발생!!! : [{}]{}", e.getClass().getSimpleName(), e.getMessage(), e);
 
+        // 디버깅용으로 에러 메세지 전문 전달
         ApiResponse<String> body = ApiResponse.error(
                 ResponseCode.INTERNAL_SERVER_ERROR,
                 e.getMessage()
@@ -34,8 +36,9 @@ public class GlobalControllerAdvice {
     // @Valid 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.warn("@Valid 요청 파라미터 유효성 검사 실패: {}", e.getMessage());
-        ApiResponse<String> body = ApiResponse.error(HttpStatus.BAD_REQUEST, "요청 파라미터 유효성 검사 실패", e.getMessage());
+        String message = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        log.warn("@Valid 요청 파라미터 유효성 검사 실패: {}", message);
+        ApiResponse<String> body = ApiResponse.error(HttpStatus.BAD_REQUEST, "요청 파라미터 유효성 검사 실패", message);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -70,7 +73,7 @@ public class GlobalControllerAdvice {
 
         String message = String.format("요청 파라미터 '%s'의 값 '%s'은(는) 올바른 형식이 아닙니다.", paramName, invalidValue);
 
-        log.error("[{}] 유효하지 않은 파라미터: {}", e.getClass().getSimpleName(), message);
+        log.warn("[{}] 유효하지 않은 파라미터: {}", e.getClass().getSimpleName(), message);
 
         ApiResponse<String> body = ApiResponse.error(
                 ResponseCode.BAD_REQUEST,
@@ -79,6 +82,16 @@ public class GlobalControllerAdvice {
 
         return ResponseEntity
                 .status(ResponseCode.BAD_REQUEST.getHttpStatus())
+                .body(body);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<String>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.warn("유저 등록 중 이메일 중복: {}", e.getMessage());
+        ApiResponse<String> body = ApiResponse.error(HttpStatus.CONFLICT, "이메일 중복", "해당 이메일은 사용할 수 없습니다.");
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(body);
     }
 
