@@ -33,8 +33,8 @@ public class ScheduleController {
     @GetMapping
     public ApiResponse<SchedulePageResponseDto> findAllSchedules(
             @PageableDefault(size = 10, sort = "created_at", direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestParam(required = false, defaultValue = "") @DateString String modified_date,    // 날짜 형식 yyyy-MM-dd
-            @RequestParam(required = false, defaultValue = "-1") Long userId
+            @RequestParam(required = false) @DateString String modified_date,    // 날짜 형식 yyyy-MM-dd
+            @RequestParam(required = false) Long userId
     ) {
         return ApiResponse.ok(scheduleService.findAllSchedules(pageable, modified_date, userId));
     }

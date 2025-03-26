@@ -61,7 +61,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public SchedulePageResponseDto findAllSchedules(Pageable pageable, String modifiedDate, Long userId) {
         // userId(required=false)를 전달받았지만 유효하지 않은 유저 ID인 경우
-        if (userId != -1 && userRepository.findById(userId).isEmpty()) {
+        if (userId != null && userRepository.findById(userId).isEmpty()) {
             throw new NotFoundException(ResponseCode.NOT_FOUND_USER_ID);
         }
 

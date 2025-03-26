@@ -90,12 +90,12 @@ public class ScheduleRepositoryImpl implements ScheduleRepository{
         StringBuilder query = new StringBuilder(QUERY_SCHEDULE_WRITER_JOIN_STRING + " WHERE 1=1");  // 조건에 맞는 데이터 조회하는 쿼리
         List<Object> params = new ArrayList<>();    // prepared statement 쿼리에 매개변수로 전달할 리스트
 
-        if (!modifiedDate.isBlank()) {
+        if (modifiedDate != null && !modifiedDate.isBlank()) {
             query.append(" AND DATE_FORMAT(s.modified_at, '%Y-%m-%d') = ?");
             params.add(modifiedDate);
         }
 
-        if (userId != -1) {
+        if (userId != null) {
             query.append(" AND user_id = ?");
             params.add(userId);
         }
